@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit </title>
+</head>
+
+<body>
+    <section class="vh-100" style="background-color: #508bfc;" id="hide">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col col-xl-10">
+                <div class="card" style="border-radius: 1rem;">
+                    <div class="row g-0">
+                        <div class="d-flex align-items-center">
+                            <div class="card-body p-4 p-lg-5 text-black">
+                                <form action="/editCustomer" method="POST" class="user_input">
+
+                                    <h1 class="header">Edit Details</h1>
+
+                                    <div class="form-outline mb-4">
+                                        <label for="name" class="form-label">Name</label>
+                                        <input type="text" class="form-control form-control-lg" id="name" name="name" />
+                                    </div>
+
+                                    <div class="form-outline mb-4">
+                                        <label for="email" class="form-label">Mobile</label>
+                                        <input type="number" class="form-control form-control-lg" id="email"
+                                            name="email" />
+                                    </div>
+
+                                    <div class="form-outline mb-4">
+                                        <label for="member" class="form-label">Pax</label>
+                                        <input type="number" class="form-control form-control-lg" id="member"
+                                            name="member" onchange="calculateTotalAmount()" />
+                                    </div>
+
+                                    <div class="form-outline mb-4">
+                                        <label for="amount" class="form-label">Amount</label>
+                                        <input type="number" class="form-control form-control-lg" id="amount"
+                                            name="amount" onchange="calculateTotalAmount()" />
+                                    </div>
+
+                                    <div class="form-outline mb-4">
+                                        <label class="form-label">Total Amount: </label>
+                                        <input class="form-control form-control-lg" id="totalAmountInput"
+                                            name="totalAmount" readonly />
+                                    </div>
+
+                                    <div class="form-outline mb-4">
+                                        <button type="submit" class="btn btn-dark btn-lg btn-block"
+                                            onclick="printData()">Submit</button>
+                                        <button type="button" class="btn btn-dark btn-lg btn-block"
+                                            onclick="printData()">Print</button>
+                                    </div>
+
+                                    <div class="timedate">
+                                        <span class="form-label">Date:</span>
+                                        <input id="date" class="time" name="date">
+                                        <span class="form-label mt">Time:</span>
+                                        <input id="time" class="time" name="time">
+                                    </div>
+                                </form>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </section>
+
+    <script>
+        const dateInput = document.getElementById('date');
+        // Generate the date string.
+        var dateObj = new Date();
+        var month = dateObj.getUTCMonth() + 1; //months from 1-12
+        var day = dateObj.getUTCDate();
+        var year = dateObj.getUTCFullYear();
+
+        let newdate = year + "/ " + month + "/ " + day
+
+        dateInput.value = newdate;
+
+        const hours = dateObj.getHours()
+        const minutes = dateObj.getMinutes()
+        const seconds = dateObj.getSeconds()
+
+        time.value = (`${hours} : ${minutes} : ${seconds}`)
+
+        // total amount
+        function calculateTotalAmount() {
+            const member = document.getElementById("member").value;
+            const amount = document.getElementById("amount").value;
+            const display = member * amount;
+
+            // Assign the calculated value to the hidden input field
+            document.getElementById("totalAmountInput").value = display;
+
+        }
+
+        // print updated data
+        // print data 
+        function printData() {
+            // Get the data from each element on the form.
+            const name = document.getElementById("name").value;
+            const mob = document.getElementById('email').value;
+            const member = document.getElementById("member").value;
+            const amount = document.getElementById("amount").value;
+            const totalAmount = document.getElementById('totalAmountInput').value;
+
+            const display = totalAmount.innerText = member * amount;
+
+            // Generate the date string.
+
+            var dateObj = new Date();
+            var month = dateObj.getUTCMonth() + 1; //months from 1-12
+            var day = dateObj.getUTCDate();
+            var year = dateObj.getUTCFullYear();
+
+            let newdate = year + "/ " + month + "/ " + day
+
+            const hours = dateObj.getHours()
+            const minutes = dateObj.getMinutes()
+            const seconds = dateObj.getSeconds()
+
+            let time = (`${hours} : ${minutes}`)
+
+            // This variable stores all the data including the date.
+            let data = [newdate, name, mob, member, amount, totalAmount, time];
+
+            // Open a new window or tab with the print-friendly version of the data.
+            const printWindow = window.open('', '', 'width=800,height=800');
+            printWindow.document.open();
+            printWindow.document.write(`<html><head><title>Print</title></head><body>
+          <div style="font-family: arial, sans-serif;
+          border-collapse: collapse;
+          width: 100%;
+          display: flex; justify-content: center">
+          <div style="display: flex">
+            <p style=" #dddddd; text-align: end; padding: 8px; padding-left: 40px">${data[1]}</p>
+            <div>
+            <p style=" #dddddd; text-align: end; padding: 8px; padding-left: 70px">${data[0]}</p>
+            <p style=" #dddddd; text-align: end; padding: 8px; padding-left: 70px">${data[6]}</p>
+            </div>
+            <p  style=" #dddddd; text-align: end; padding: 8px; padding-left: 52px">${data[3]}</p>
+          </div>
+          <div style="margin-top: 40px">
+            <p style=" #dddddd; text-align: end; padding: 8px; padding-left: 100px">${data[0]}</p>
+            <div style="display: flex; justify-content: flex-end;">
+              <p style=" ">${data[1]}</p>
+              
+            </div>
+            <p  style=" #dddddd; text-align: end; padding: 8px;">${data[5]}</p>
+            <p  style=" #dddddd; text-align: end; padding: 8px;">${data[2]}</p>
+          </div>
+          <div style="display: flex; flex-direction: column; margin-top: 60px;">
+            <p style=" #dddddd; text-align: end; padding: 8px; padding-left: 100px; writing-mode: vertical-lr ">${data[0]}</p>
+            <p style=" #dddddd; margin-top: 45px;padding-left: 101px; writing-mode: vertical-lr">${data[3]}</p>
+            <div>
+            <p style=" #dddddd; margin-left: 160px; writing-mode: vertical-lr; margin-top: -17px;">${data[5]}</p>
+            </div>
+          </div>
+          
+        </div></body></html>`);
+            printWindow.document.close();
+
+            // Print the contents of the new window or tab.
+            printWindow.print();
+        }
+
+    </script>
+</body>
+
+</html>

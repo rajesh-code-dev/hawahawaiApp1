@@ -1,0 +1,374 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>hawahawai Customer</title>
+    <script src="https://kit.fontawesome.com/354d025927.js" crossorigin="anonymous"></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        #email a {
+            text-decoration: none;
+        }
+
+        th,
+        td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="./superAdminSite.html" target="_self"
+            style="text-decoration: none; margin-right: 20px; font-size: 25px;"><i class="fa-solid fa-house"></i></a>
+
+        <div>
+
+            <button type="button" class="btn btn-primary btn-lg btn-block" onclick="showData(), totalAmount()">Billed
+                Data</button>
+        </div>
+
+    </div>
+    <div style="display: flex; justify-content: space-between;">
+        <h4>Today Customers</h4>
+        <h4 id="totalAmount"></h4>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Number</th>
+                <th>Pax</th>
+                <th>Amount</th>
+                <th>Total Amount</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody id="myUL">
+        </tbody>
+        <div class="totalContainer">
+            <div class="paxContainer" id="paxContainer">
+
+            </div>
+            <div class="totalAmountContainer" id="totalAmountContainer">
+
+            </div>
+
+        </div>
+    </table>
+
+    <div style="margin-top: 10px; display: flex; justify-content: space-between;">
+        <h4>Yesterday Customers</h4>
+        <h4 id="yesterdayAmount"></h4>
+    </div>
+
+    <table >
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Number</th>
+                <th>Pax</th>
+                <th>Amount</th>
+                <th>Total Amount</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody id="yesterdayData">
+
+        </tbody>
+    </table>
+
+    <div style="margin-top: 10px; display: flex; justify-content: space-between;">
+        <h4>Total Customers</h4>
+        <h4 id="weekAmount"></h4>
+    </div>
+
+    <table >
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Number</th>
+                <th>Pax</th>
+                <th>Amount</th>
+                <th>Total Amount</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody id="weekData">
+
+        </tbody>
+    </table>
+
+
+    <script>
+
+        const dataContainer = document.getElementById('myUL');
+        // present day data
+        const showData = async () => {
+            try {
+                const response = await fetch('/billedData');
+                const formData = await response.json();
+
+                // console.log('form', formData);
+
+                // Get the current date
+                const currentDate = new Date().toDateString();
+
+                // Filter the data based on the current date
+                const filteredData = formData.filter(data => new Date(data.date).toDateString() === currentDate);
+                // console.log('form', filteredData);
+                // Display the data in the dataContainer element
+                const dataContainer = document.getElementById('myUL');
+
+                if (dataContainer) {
+                    // Show the form
+
+                    // Clear existing HTML content
+                    dataContainer.innerHTML = '';
+
+                    // Loop through each data entry and append the HTML content
+                    for (const data of filteredData) {
+                        const htmlContent = `
+                        <tr id="hide">
+                            <td id="name">${data.name}</td>
+                            <td id="email"><a href="tel:+${data.email}">${data.email}</a></td>
+                            <td id="member">${data.member}</td>
+                            <td id="amount">${data.amount}</td>
+                            <td id="totalAmount">${data.totalAmount}</td>
+                            <td id="date">${data.date}</td>
+                           
+
+                            <!-- <td><button onclick="deleteCustomer(${data.id})" class="btn bg-danger">Delete</button></td> -->
+                            <!-- <td><a class="btn btn-primary" href="/editCustomer.html" role="button">Edit</a></td> -->
+                        </tr>`;
+                        dataContainer.innerHTML += htmlContent;
+
+                    }
+
+
+                } else {
+                    // Hide the form
+                    dataContainer.document.getElementById('myUL')
+                    dataContainer.innerHTML = '';
+                }
+            } catch (error) {
+                console.error('Failed to fetch form data:', error);
+                // Handle error case here
+            }
+        };
+
+        window.addEventListener('DOMContentLoad', showData)
+        showData()
+
+        // present day total amount
+        const totalAmount = async () => {
+            try {
+                const response = await fetch('/sumBilledAmount');
+                const parsedData = await response.json();
+
+                // console.log('sum', parsedData);
+                // Access the total sum directly from parsedData
+                const totalData = parseInt(parsedData);
+
+                console.log(totalData);
+                // Display the total amount
+                const sum = document.getElementById('totalAmount');
+                sum.innerHTML = 'Total Amount: ' + totalData;
+            } catch (err) {
+                console.error('Failed to fetch total amount:', err);
+                // Handle error case here
+            }
+        };
+
+        window.addEventListener('DOMContentLoad', totalAmount)
+
+        totalAmount()
+        
+
+        // yesterday data 
+        const showYesterdayData = async () => {
+            try {
+                const response = await fetch('/billedData');
+                const formData = await response.json();
+
+                console.log('form', formData);
+
+                const currentDate = new Date();
+                const yesterday = new Date(currentDate);
+                yesterday.setDate(yesterday.getDate() - 1);
+
+                const yesterdayData = yesterday.toDateString()
+                console.log(yesterday)
+                // Filter the data based on the current date
+                const filteredData = formData.filter(data => new Date(data.date).toDateString() == yesterdayData);
+                console.log('form', filteredData);
+                // Display the data in the dataContainer element
+                const dataContainer = document.getElementById('yesterdayData');
+
+                if (dataContainer) {
+                    // Show the form
+
+                    // Clear existing HTML content
+                    dataContainer.innerHTML = '';
+
+                    // Loop through each data entry and append the HTML content
+                    for (const data of filteredData) {
+                        const htmlContent = `
+                        <tr id="hide">
+                            <td id="name">${data.name}</td>
+                            <td id="email"><a href="tel:+${data.email}">${data.email}</a></td>
+                            <td id="member">${data.member}</td>
+                            <td id="amount">${data.amount}</td>
+                            <td id="totalAmount">${data.totalAmount}</td>
+                            <td id="date">${data.date}</td>
+                           
+
+                            <!-- <td><button onclick="deleteCustomer(${data.id})" class="btn bg-danger">Delete</button></td> -->
+                            <!-- <td><a class="btn btn-primary" href="/editCustomer.html" role="button">Edit</a></td> -->
+                        </tr>`;
+                        dataContainer.innerHTML += htmlContent;
+
+                    }
+
+
+                } else {
+                    // Hide the form
+                    dataContainer.document.getElementById('myUL')
+                    dataContainer.innerHTML = '';
+                }
+            } catch (error) {
+                console.error('Failed to fetch form data:', error);
+                // Handle error case here
+            }
+        };
+
+        window.addEventListener('DOMContentLoad', showYesterdayData)
+        showYesterdayData()
+
+         // yesterday total amount
+         const yesterdayAmount = async () => {
+            try {
+                const response = await fetch('/yesterdayAmount');
+                const parsedData = await response.json();
+
+                // console.log('sum', parsedData);
+                // Access the total sum directly from parsedData
+                const totalData = parseInt(parsedData);
+
+                console.log(totalData);
+                // Display the total amount
+                const sum = document.getElementById('yesterdayAmount');
+                sum.innerHTML = 'Total Amount: ' + totalData;
+            } catch (err) {
+                console.error('Failed to fetch total amount:', err);
+                // Handle error case here
+            }
+        };
+
+        window.addEventListener('DOMContentLoad', yesterdayAmount)
+
+        yesterdayAmount()
+
+        // week data
+        const weekData = async () => {
+            try {
+                const response = await fetch('/billedData');
+                const formData = await response.json();
+
+                console.log('form', formData);
+
+                
+                // Display the data in the dataContainer element
+                const dataContainer = document.getElementById('weekData');
+
+                if (dataContainer) {
+                    // Show the form
+
+                    // Clear existing HTML content
+                    dataContainer.innerHTML = '';
+
+                    // Loop through each data entry and append the HTML content
+                    for (const data of formData) {
+                        const htmlContent = `
+                        <tr id="hide">
+                            <td id="name">${data.name}</td>
+                            <td id="email"><a href="tel:+${data.email}">${data.email}</a></td>
+                            <td id="member">${data.member}</td>
+                            <td id="amount">${data.amount}</td>
+                            <td id="totalAmount">${data.totalAmount}</td>
+                            <td id="date">${data.date}</td>
+                           
+
+                            <!-- <td><button onclick="deleteCustomer(${data.id})" class="btn bg-danger">Delete</button></td> -->
+                            <!-- <td><a class="btn btn-primary" href="/editCustomer.html" role="button">Edit</a></td> -->
+                        </tr>`;
+                        dataContainer.innerHTML += htmlContent;
+
+                    }
+
+
+                } else {
+                    // Hide the form
+                    dataContainer.document.getElementById('weekData')
+                    dataContainer.innerHTML = '';
+                }
+            } catch (error) {
+                console.error('Failed to fetch form data:', error);
+                // Handle error case here
+            }
+        };
+
+        window.addEventListener('DOMContentLoad', weekData)
+        weekData()
+
+
+       // week total amount
+       const weekAmount = async () => {
+            try {
+                const response = await fetch('/weekAmount');
+                const parsedData = await response.json();
+
+                console.log('sum', parsedData);
+                // Access the total sum directly from parsedData
+                const totalData = parseInt(parsedData);
+
+                console.log(totalData);
+                // Display the total amount
+                const sum = document.getElementById('weekAmount');
+                sum.innerHTML = 'Total Amount: ' + totalData;
+            } catch (err) {
+                console.error('Failed to fetch total amount:', err);
+                // Handle error case here
+            }
+        };
+
+    window.addEventListener('DOMContentLoad', weekAmount)
+    weekAmount()
+       
+
+    </script>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+</body>
+
+</html>

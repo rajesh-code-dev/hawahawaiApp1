@@ -1,0 +1,428 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>hawahawai Customer</title>
+  <script src="https://kit.fontawesome.com/354d025927.js" crossorigin="anonymous"></script>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    #email a {
+      text-decoration: none;
+    }
+
+    th,
+    td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .container {
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <a href="javascript:void(0);" onclick="goBack()"
+      style="text-decoration: none; margin-right: 20px; font-size: 25px;"><i class="fa-solid fa-house"></i></a>
+
+    <div>
+      <button type="button" class="btn btn-primary btn-lg btn-block">Waiting</button>
+    </div>
+    <div class="pax">
+      <h2 id="totalPax"></h2>
+    </div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Number</th>
+        <th>Pax</th>
+        <!-- <th>Amount</th>
+                <th>Total Amount</th> -->
+        <th>Waiting</th>
+        <th>Check</th>
+        <th>Cancel</th>
+        <th>Print</th>
+      </tr>
+    </thead>
+    <tbody id="myUL">
+    </tbody>
+    <div class="totalContainer">
+      <div class="paxContainer" id="paxContainer">
+
+      </div>
+      <div class="totalAmountContainer" id="totalAmountContainer">
+
+      </div>
+    </div>
+  </table>
+
+  <script>
+
+    function goBack() {
+      window.history.back();
+    }
+
+    const dataContainer = document.getElementById('myUL');
+    // showing store data and fetching 
+
+
+    const showData = async () => {
+      try {
+        const response = await fetch('/getData');
+        const formData = await response.json();
+
+
+        // Display the data in the dataContainer element
+        const dataContainer = document.getElementById('myUL');
+
+        if (dataContainer) {
+          // Show the form
+
+          // Clear existing HTML content
+          dataContainer.innerHTML = '';
+
+          // Loop through each data entry and append the HTML content
+          for (const data of formData) {
+
+            const currentDate = new Date();
+            const currentHours = currentDate.getHours();
+            const currentMinutes = currentDate.getMinutes();
+            const currentSeconds = currentDate.getSeconds();
+
+            const timeToSubtract = data.time;
+            const [hoursToSubtract, minutesToSubtract, secondsToSubtract] = timeToSubtract.split(":").map(Number);
+
+            let diffHours = currentHours - hoursToSubtract;
+            let diffMinutes = currentMinutes - minutesToSubtract;
+            let diffSeconds = currentSeconds - secondsToSubtract;
+
+            if (diffSeconds < 0) {
+              diffMinutes--;
+              diffSeconds += 60;
+            }
+            if (diffMinutes < 0) {
+              diffHours--;
+              diffMinutes += 60;
+            }
+            if (diffHours < 0) {
+              diffHours += 24;
+            }
+
+            const htmlContent = `
+                        <tr id="hide">
+                            <td id="name">${data.name}</td>
+                            <td id=""><a href="tel:+${data.email}"><i class="fa-solid fa-phone"></i></a></td>
+                            <td id="email" style="display: none;">${data.email}</td>
+                            <td id="member">${data.member}</td>
+                            <td id="amount" style="display: none;">${data.amount}</td>
+                            <td id="totalAmount" style="display: none;">${data.totalAmount}</td>
+                            <td id="date" style="display: none;">${data.date}</td>
+                            <td id="time" style="display: none;">${data.time}</td>
+                            <td id="">${diffHours}:${diffMinutes}:${diffSeconds}</td>
+                            <td><button class="btn btn-primary check-in-btn" onclick="checkInButton(event), deleteCustomer(${data.id})">Check in</button></td>
+                            <td><button class="btn btn-primary check-in-btn" onclick="cancelButton(event), deleteCustomer(${data.id})">Cancel</button></td>
+                            
+                            <!-- <td><button onclick="deleteCustomer(${data.id})" class="btn bg-danger">Delete</button></td> -->
+                            <td><a class="btn btn-primary" onclick="printData(event)"  role="button">Print</a></td>
+                        </tr>`;
+            dataContainer.innerHTML += htmlContent;
+          }
+
+
+        } else {
+          // Hide the form
+          dataContainer.document.getElementById('myUL')
+          dataContainer.innerHTML = '';
+        }
+      } catch (error) {
+        console.error('Failed to fetch form data:', error);
+        // Handle error case here
+      }
+    };
+
+    setInterval(showData, 1000);
+
+    window.addEventListener('DOMContentLoaded', showData)
+
+    showData()
+
+    let totalPaxValue = 0; // Variable to store the total Pax count
+
+    const totalPax = async () => {
+      let storeValue = document.getElementById('totalPax');
+      try {
+        const response = await fetch('/sumPax');
+        const paxtotal = await response.text();
+        const parsedData = JSON.parse(paxtotal);
+        const memberValue = parsedData[0].member;
+
+        totalPaxValue = memberValue; // Update the total Pax count in the global variable
+
+        storeValue.innerHTML = 'Total Pax: ' + memberValue;
+        console.log(memberValue);
+      } catch (err) {
+        console.error('Failed to fetch total Pax count:', err);
+        // Handle error case here
+      }
+    };
+
+    window.addEventListener('DOMContentLoad', totalPax)
+
+    totalPax()
+
+    const deleteData = async (id) => {
+      try {
+        const response = await fetch(`/deleteData/${id}`, {
+          method: 'DELETE'
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log(result);
+        } else {
+          console.error('Failed to delete data');
+          // Handle the failure case
+        }
+      } catch (error) {
+        console.error('Failed to delete data:', error);
+        // Handle error case here
+      }
+    };
+
+
+    // send data to checked in db
+    // Update the sendData function to accept the data as a parameter
+    // Update the sendData function to accept the data and deleteFlag as parameters
+    const sendData = async (data) => {
+      try {
+        const response = await fetch('/submitData', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log(result);
+          // Data submitted successfully, handle the response if needed
+
+
+        } else {
+          console.error('Failed to submit data');
+          // Handle the failure case
+        }
+      } catch (error) {
+        console.error('Failed to submit data:', error);
+        // Handle error case here
+      }
+    };
+
+
+    // Attach the sendData function to the "Check in" button's onclick event
+
+    function checkInButton(event) {
+      const button = event.target;
+      const row = button.parentNode.parentNode; // Get the parent row
+      const name = row.querySelector('#name').textContent;
+      const email = row.querySelector('#email').textContent;
+      const member = row.querySelector('#member').textContent;
+      const amount = row.querySelector('#amount').textContent;
+      const totalAmount = row.querySelector('#totalAmount').textContent;
+      const date = row.querySelector('#date').textContent;
+
+      const currentDate = new Date();
+      const currentHours = currentDate.getHours();
+      const currentMinutes = currentDate.getMinutes();
+      const currentSeconds = currentDate.getSeconds();
+
+      const boardTime = [`${currentHours}:${currentMinutes}:${currentSeconds}`]
+
+      const data = {
+        name: name,
+        email: email,
+        member: member,
+        amount: amount,
+        totalAmount: totalAmount,
+        date: date,
+        boardTime: boardTime,
+      };
+
+      sendData(data);
+
+      button.innerHTML = 'Checked In';
+      button.style.background = 'orange';
+
+      const memberMinus = parseInt(member); // Get the number of pax from the row
+
+      totalPaxValue -= memberMinus; // Subtract the number of pax from the total pax count
+
+      totalPax(totalPaxValue);  // Update the displayed total Pax count
+
+      button.innerHTML = 'Checked In';
+      button.style.background = 'orange';
+      button.disabled = true;
+    }
+
+    // sending canceled data
+    const sendCancelData = async (data) => {
+      try {
+        const response = await fetch('/cancelData', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log(result);
+          // Data submitted successfully, handle the response if needed
+
+        } else {
+          console.error('Failed to submit data');
+          // Handle the failure case
+        }
+      } catch (error) {
+        console.error('Failed to submit data:', error);
+        // Handle error case here
+      }
+    };
+
+    function cancelButton(event) {
+      const button = event.target;
+      const row = button.parentNode.parentNode; // Get the parent row
+      const name = row.querySelector('#name').textContent;
+      const email = row.querySelector('#email').textContent;
+      const member = row.querySelector('#member').textContent;
+      const amount = row.querySelector('#amount').textContent;
+      const totalAmount = row.querySelector('#totalAmount').textContent;
+      const date = row.querySelector('#date').textContent;
+
+
+      const data = {
+        name: name,
+        email: email,
+        member: member,
+        amount: amount,
+        totalAmount: totalAmount,
+        date: date,
+
+      };
+
+      sendCancelData(data);
+
+      const memberMinus = parseInt(member); // Get the number of pax from the row
+      totalPaxValue -= memberMinus; // Subtract the number of pax from the total pax count
+
+      totalPax(totalPaxValue);  // Update the displayed total Pax count
+
+    }
+    // deleting function fetching data from api.js
+    const deleteCustomer = async (id) => {
+      try {
+        const response = await fetch(`/deleteData/${id}`, {
+          method: 'DELETE'
+        });
+        const result = await response.json();
+        console.log(result);
+        // Refresh the displayed data after deletion
+        showData();
+      } catch (error) {
+        console.error('Failed to delete customer:', error);
+        // Handle error case here
+      }
+    };
+
+    // print waiting 
+    function printData(event) {
+      // Get the data from each element on the form.
+      const button = event.target;
+      const row = button.parentNode.parentNode; // Get the parent row
+      const name = row.querySelector('#name').textContent;
+      const email = row.querySelector('#email').textContent;
+      const member = row.querySelector('#member').textContent;
+      const amount = row.querySelector('#amount').textContent;
+      const totalAmount = row.querySelector('#totalAmount').textContent;
+      const date = row.querySelector('#date').textContent;
+      const time = row.querySelector('#time').textContent;
+
+
+      const data = {
+        name: name,
+        email: email,
+        member: member,
+        amount: amount,
+        totalAmount: totalAmount,
+        date: date,
+        time: time
+      };
+
+
+      // Open a new window or tab with the print-friendly version of the data.
+      const printWindow = window.open('', '', 'width=800,height=800');
+      printWindow.document.open();
+      printWindow.document.write(`<html><head><title>Print</title></head><body>
+        <div style="font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+        display: flex; justify-content: center">
+        <div style="display: flex">
+          <p style=" #dddddd; text-align: end;  padding-left: 40px">${data.name}</p>
+          <div>
+          <p style=" #dddddd; text-align: end; padding-left: 70px">${data.date}</p>
+          <p style=" #dddddd; text-align: end;  padding-left: 70px">${data.time}</p>
+          </div>
+          <p  style=" #dddddd; text-align: end; padding-left: 52px">${data.member}</p>
+        </div>
+        <div style="margin-top: 40px">
+          <p style=" #dddddd; text-align: end; ; padding-left: 100px">${data.date}</p>
+          <div style="display: flex; justify-content: flex-end;">
+            <p style=" ">${data.name}</p>
+            
+          </div>
+          <p  style=" #dddddd; text-align: end;">${data.member}</p>
+          <p  style=" #dddddd; text-align: end;">${data.amount}</p>
+          <p style=" #dddddd; margin-left: 70px; margin-top: -17px; text-align: end;">${data.email}</p>
+        </div>
+        <div style="display: flex; flex-direction: column; margin-top: 60px; width:100px; margin-left: 20px">
+          <p style=" #dddddd; text-align: end; writing-mode: vertical-lr ">${data.date}</p>
+          <p style=" #dddddd; margin-top: 45px; writing-mode: vertical-lr">${data.member}</p>
+          <div style="display: flex; justify-content: end;">
+          <p style=" #dddddd; writing-mode: vertical-lr; margin-top: -30px;">${data.totalAmount}</p>
+          
+          </div>
+        </div>
+        
+      </div></body></html>`);
+      printWindow.document.close();
+
+      // Print the contents of the new window or tab.
+      printWindow.print();
+    }
+
+
+  </script>

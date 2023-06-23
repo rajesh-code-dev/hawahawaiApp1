@@ -1,0 +1,254 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>hawahawai Customer</title>
+    <script src="https://kit.fontawesome.com/354d025927.js" crossorigin="anonymous"></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        #email a {
+            text-decoration: none;
+        }
+
+        th,
+        td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="./managerData.html" target="_self"
+            style="text-decoration: none; margin-right: 20px; font-size: 25px;"><i class="fa-solid fa-house"></i></a>
+
+        <div>
+
+            <button type="button" class="btn btn-primary btn-lg btn-block" onclick="showData(), totalPax()">Checked
+                In</button>
+        </div>
+        <div class="pax">
+            <h2 id="totalPax"></h2>
+        </div>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Boarding No</th>
+                <th>Name</th>
+                <th>Number</th>
+                <th>Pax</th>
+                <th>Board Time</th>
+                <!-- <th>Amount</th>
+                <th>Total Amount</th> -->
+                <th>Date</th>
+                <th>Bill</th>
+            </tr>
+        </thead>
+        <tbody id="myUL">
+        </tbody>
+        <div class="totalContainer">
+            <div class="paxContainer" id="paxContainer">
+
+            </div>
+            <div class="totalAmountContainer" id="totalAmountContainer">
+
+            </div>
+        </div>
+    </table>
+
+
+    <script>
+
+        const dataContainer = document.getElementById('myUL');
+        // showing store data and fetching 
+        const showData = async () => {
+            try {
+                const response = await fetch('/checkedData');
+                const formData = await response.json();
+
+                console.log(formData);
+                // Display the data in the dataContainer element
+                const dataContainer = document.getElementById('myUL');
+
+                if (dataContainer) {
+                    // Show the form
+
+                    // Clear existing HTML content
+                    dataContainer.innerHTML = '';
+
+                    // Loop through each data entry and append the HTML content
+                    for (const data of formData) {
+                        const htmlContent = `
+                        <tr id="hide">
+                            <td id="name">${data.id}</td>
+                            <td id="name">${data.name}</td>
+                            <td id=""><a href="tel:+${data.email}"><i class="fa-solid fa-phone"></i></a></td>
+                            <td id="member">${data.member}</td>
+                            <td id="boardTime">${data.boardTime}</td>
+                            <td id="amount" style="display: none">${data.amount}</td>
+                            <td id="totalAmount" style="display: none">${data.totalAmount}</td>
+                            <td id="date">${data.date}</td>
+                            <td><button class="btn btn-primary check-in-btn" onclick="checkInButton(event), deleteCustomer(${data.id})">Billed</button></td>
+
+                            <!-- <td><button onclick="deleteCustomer(${data.id})" class="btn bg-danger">Delete</button></td> -->
+                            <!-- <td><a class="btn btn-primary" href="/editCustomer.html" role="button">Edit</a></td> -->
+                        </tr>`;
+                        dataContainer.innerHTML += htmlContent;
+
+                    }
+
+
+                } else {
+                    // Hide the form
+                    dataContainer.document.getElementById('myUL')
+                    dataContainer.innerHTML = '';
+                }
+            } catch (error) {
+                console.error('Failed to fetch form data:', error);
+                // Handle error case here
+            }
+        };
+
+        window.addEventListener('DOMContentLoad', showData)
+
+        showData()
+
+        let totalPaxValue = 0; // Variable to store the total Pax count
+
+        const totalPax = async () => {
+            let storeValue = document.getElementById('totalPax');
+            try {
+                const response = await fetch('/sumCheckedPax');
+                const paxtotal = await response.text();
+                const parsedData = JSON.parse(paxtotal);
+                const memberValue = parsedData[0].member;
+
+                totalPaxValue = memberValue; // Update the total Pax count in the global variable
+
+                storeValue.innerHTML = 'Total Pax: ' + memberValue;
+                console.log(memberValue);
+            } catch (err) {
+                console.error('Failed to fetch total Pax count:', err);
+                // Handle error case here
+            }
+        };
+
+        window.addEventListener('DOMContentLoad', totalPax)
+
+        totalPax()
+
+
+        // send data to checked in db
+
+        const sendData = async (data) => {
+            try {
+                const response = await fetch('/submitCheckedData', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log(result);
+                    // Data submitted successfully, handle the response if needed
+
+
+                } else {
+                    console.error('Failed to submit data');
+                    // Handle the failure case
+                }
+            } catch (error) {
+                console.error('Failed to submit data:', error);
+                // Handle error case here
+            }
+        };
+
+
+        // Attach the sendData function to the "Check in" button's onclick event
+
+        function checkInButton(event) {
+            const button = event.target;
+            const row = button.parentNode.parentNode; // Get the parent row
+            const name = row.querySelector('#name').textContent;
+            const email = row.querySelector('#email').textContent;
+            const member = row.querySelector('#member').textContent;
+            const amount = row.querySelector('#amount').textContent;
+            const totalAmount = row.querySelector('#totalAmount').textContent;
+            const date = row.querySelector('#date').textContent;
+
+
+            const data = {
+                name: name,
+                email: email,
+                member: member,
+                amount: amount,
+                totalAmount: totalAmount,
+                date: date,
+
+            };
+
+            sendData(data);
+
+            button.innerHTML = 'Checked In';
+            button.style.background = 'orange';
+
+            const memberMinus = parseInt(member); // Get the number of pax from the row
+
+            totalPaxValue -= memberMinus; // Subtract the number of pax from the total pax count
+
+            totalPax(totalPaxValue);  // Update the displayed total Pax count
+
+            button.innerHTML = 'Checked In';
+            button.style.background = 'orange';
+            button.disabled = true;
+        }
+
+
+
+        // // deleting function fetching data from api.js
+        const deleteCustomer = async (id) => {
+            try {
+                const response = await fetch(`/deleteCheckedData/${id}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                console.log(result);
+                // Refresh the displayed data after deletion
+                showData();
+            } catch (error) {
+                console.error('Failed to delete customer:', error);
+                // Handle error case here
+            }
+        };
+
+
+    </script>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+</body>
+
+</html>
